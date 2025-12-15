@@ -1,0 +1,268 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Venezia Tower House Premium Design System */
+    /* Clean · Elegant · Refined · Premium */
+    
+    /* Clean white background */
+    --background: 0 0% 100%;
+    --foreground: 220 30% 15%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 15%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 15%;
+    
+    /* Deep navy blue - from logo - increased contrast */
+    --primary: 220 35% 18%;
+    --primary-foreground: 0 0% 100%;
+    
+    /* Elegant bronze/gold accent - richer and warmer */
+    --secondary: 32 45% 48%;
+    --secondary-foreground: 0 0% 100%;
+    
+    /* Refined muted - better contrast */
+    --muted: 220 15% 96%;
+    --muted-foreground: 220 20% 40%;
+    
+    /* Gold accent - more prominent and luxurious */
+    --accent: 32 50% 45%;
+    --accent-foreground: 0 0% 100%;
+    
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    
+    --border: 220 15% 88%;
+    --input: 220 15% 88%;
+    --ring: 32 50% 45%;
+    
+    --radius: 0.375rem;
+    
+    /* Custom premium tokens - refined palette */
+    --gold: 32 50% 45%;
+    --gold-light: 32 45% 60%;
+    --gold-dark: 32 55% 35%;
+    
+    --navy: 220 35% 18%;
+    --navy-light: 220 28% 28%;
+    
+    --warm-white: 30 20% 99%;
+    --stone: 30 15% 96%;
+    
+    /* Premium Gradients */
+    --gradient-gold: linear-gradient(135deg, hsl(32, 50%, 45%), hsl(32, 45%, 55%));
+    --gradient-navy: linear-gradient(135deg, hsl(220, 35%, 18%), hsl(220, 28%, 26%));
+    --gradient-overlay: linear-gradient(180deg, hsla(220, 35%, 18%, 0.15), hsla(220, 35%, 18%, 0.4));
+    
+    /* Premium Shadows - refined */
+    --shadow-elegant: 0 4px 20px -4px hsla(220, 35%, 18%, 0.08);
+    --shadow-gold: 0 4px 20px -4px hsla(32, 50%, 45%, 0.2);
+    --shadow-lift: 0 12px 40px -8px hsla(220, 35%, 18%, 0.1);
+    
+    /* Premium Transitions */
+    --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-elegant: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  }
+  
+  .dark {
+    --background: 220 25% 20%;
+    --foreground: 0 0% 98%;
+    
+    --card: 220 22% 24%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 220 22% 24%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 0 0% 98%;
+    --primary-foreground: 220 25% 20%;
+    
+    --secondary: 35 35% 55%;
+    --secondary-foreground: 220 25% 20%;
+    
+    --muted: 220 20% 28%;
+    --muted-foreground: 220 10% 70%;
+    
+    --accent: 35 35% 55%;
+    --accent-foreground: 220 25% 20%;
+    
+    --border: 220 20% 28%;
+    --input: 220 20% 28%;
+    --ring: 35 35% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-weight: 400;
+    line-height: 1.65;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: "cv11", "ss01";
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter Tight', 'Inter', -apple-system, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    color: hsl(var(--foreground));
+  }
+  
+  h1 {
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+  
+  h2 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+  
+  h3, h4 {
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  
+  p {
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+    color: hsl(var(--muted-foreground));
+  }
+  
+  /* Better text rendering for small text */
+  .text-sm, .text-xs {
+    letter-spacing: 0.01em;
+  }
+}
+
+/* Custom utility classes for Venezia Tower House Premium */
+@layer utilities {
+  .text-gradient-gold {
+    @apply bg-gradient-to-r from-[hsl(32,50%,45%)] to-[hsl(32,45%,55%)] bg-clip-text text-transparent;
+  }
+  
+  .bg-gradient-gold {
+    background: var(--gradient-gold);
+  }
+  
+  .bg-gradient-navy {
+    background: var(--gradient-navy);
+  }
+  
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+  
+  .shadow-gold {
+    box-shadow: var(--shadow-gold);
+  }
+  
+  .shadow-lift {
+    box-shadow: var(--shadow-lift);
+  }
+  
+  .transition-smooth {
+    transition: var(--transition-smooth);
+  }
+  
+  .transition-elegant {
+    transition: var(--transition-elegant);
+  }
+  
+  .font-display {
+    font-family: 'Inter Tight', 'Inter', -apple-system, sans-serif;
+  }
+  
+  .font-body {
+    font-family: 'Inter', -apple-system, sans-serif;
+  }
+  
+  .tracking-heading {
+    letter-spacing: -0.025em;
+  }
+  
+  .writing-vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+  }
+  
+  /* Hover effects */
+  .hover-lift {
+    @apply transition-all duration-300;
+  }
+  
+  .hover-lift:hover {
+    @apply -translate-y-1;
+    box-shadow: var(--shadow-lift);
+  }
+  
+  .hover-scale {
+    @apply transition-transform duration-300;
+  }
+  
+  .hover-scale:hover {
+    @apply scale-[1.02];
+  }
+  
+  .hover-glow {
+    @apply transition-shadow duration-300;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: var(--shadow-gold);
+  }
+  
+  /* Link underline animation */
+  .link-underline {
+    @apply relative;
+  }
+  
+  .link-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-[1px] bg-current origin-left scale-x-0 transition-transform duration-300;
+  }
+  
+  .link-underline:hover::after {
+    @apply scale-x-100;
+  }
+  
+  /* Stagger animation delays */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+  .stagger-6 { animation-delay: 0.6s; }
+  
+  /* Fill mode for animations */
+  .fill-both {
+    animation-fill-mode: both;
+  }
+  
+  /* Hide scrollbar for horizontal scroll containers */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}

@@ -1,0 +1,196 @@
+import { Link } from "react-router-dom";
+import { ArrowLeft, Maximize, Bed, Bath, Check, FileText } from "lucide-react";
+import planoTipologiaE from "/images/planta-tipo-e1.png";
+
+const TipologiaE = () => {
+  const tipologia = {
+    id: "e",
+    name: "Tipología E",
+    subtitle: "Apartaestudio",
+    price: "$277.100.000",
+    currency: "COP",
+    status: "Disponible",
+    size: "32,6",
+    rooms: "1",
+    bathrooms: "1",
+    description: "Tu mejor refugio en la ciudad. Este apartaestudio ofrece un diseño compacto pero funcional, ideal para quienes buscan comodidad y estilo en un espacio reducido. Perfecto para profesionales o estudiantes que valoran la ubicación y el acceso a todas las amenidades del edificio.",
+          images: [
+      "/images/sala23.jpg",
+      "/images/cocina-03.jpg",
+      "/images/habitacion23.jpg",
+    ],
+    features: [
+      "Apartaestudio con diseño inteligente",
+      "Terraza privada de 7,2 m²",
+      "Baño privado con acabados modernos",
+      "Cocina practica y funcional",
+    ],
+    finishes: [
+  "Pisos en porcelanato formato 60x60",
+  "Puertas principales y de habitaciones de piso a techo",
+  "Puntos para aire acondicionado",
+  "Cocina con gabinetes inferiores y superiores",
+  "Estufa con campana de extracción de calor",
+  "Baños completamente dotados con enchape, accesorios y vidrio templado en zonas húmedas"
+    ],
+  };
+
+  return (
+    <div className="min-h-screen pt-20 bg-background">
+      {/* Header */}
+      <section className="py-8 bg-muted/30 border-b border-border">
+        <div className="container mx-auto px-4 lg:px-8">
+          <Link to="/tipologias" className="inline-flex items-center text-accent hover:text-accent/80 transition-smooth mb-4">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            <span>Volver a Tipologías</span>
+          </Link>
+          
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex-1">
+              <h1 className="text-4xl lg:text-5xl font-bold text-foreground">{tipologia.name}</h1>
+              <p className="text-xl text-accent font-light">{tipologia.subtitle}</p>
+            </div>
+            <div className="flex items-center gap-3 sm:gap-4">
+              <span className="px-4 py-2 rounded-full text-sm font-medium bg-primary/10 text-foreground">
+                {tipologia.status}
+              </span>
+               <div className="text-right">
+                <p className="text-sm text-muted-foreground">Desde</p>
+                <p className="text-4xl font-bold text-accent mb-2">{tipologia.price} COP</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Gallery */}
+      <section className="py-12">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="grid lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 lg:row-span-2">
+              <div className="aspect-[4/3] rounded-lg overflow-hidden shadow-elegant">
+                <img 
+                  src={tipologia.images[0]}
+                  alt={`${tipologia.name} - Vista principal`}
+                  className="w-full h-full object-cover hover:scale-105 transition-elegant"
+                />
+              </div>
+            </div>
+            <div className="aspect-video lg:aspect-auto rounded-lg overflow-hidden shadow-elegant">
+              <img 
+                src={tipologia.images[1]}
+                alt={`${tipologia.name} - Detalle 1`}
+                className="w-full h-full object-cover hover:scale-105 transition-elegant"
+              />
+            </div>
+            <div className="aspect-video lg:aspect-auto rounded-lg overflow-hidden shadow-elegant">
+              <img 
+                src={tipologia.images[2]}
+                alt={`${tipologia.name} - Detalle 2`}
+                className="w-full h-full object-cover hover:scale-105 transition-elegant"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Specifications */}
+      <section className="py-12 bg-muted/30">
+        <div className="container mx-auto px-3 lg:px-8">
+          <div className="grid grid-cols-3 gap-3 max-w-2xl mx-auto">
+            <div className="text-center p-6 bg-background rounded-lg shadow-elegant">
+              <Maximize className="w-8 h-8 text-accent mx-auto mb-3" />
+              <p className="text-3xl font-bold text-foreground">{tipologia.size}</p>
+              <p className="text-sm text-muted-foreground">m² totales</p>
+            </div>
+            <div className="text-center p-3 bg-background rounded-lg shadow-elegant">
+              <Bed className="w-8 h-8 text-accent mx-auto mb-3" />
+              <p className="text-3xl font-bold text-foreground">{tipologia.rooms}</p>
+              <p className="text-sm text-muted-foreground">Habitaciones</p>
+            </div>
+            <div className="text-center p-3 bg-background rounded-lg shadow-elegant">
+              <Bath className="w-8 h-8 text-accent mx-auto mb-3" />
+              <p className="text-3xl font-bold text-foreground">{tipologia.bathrooms}</p>
+              <p className="text-sm text-muted-foreground">Baños</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Description */}
+      <section className="py-12">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-3xl font-bold text-foreground mb-6">El Máximo Exponente del Lujo</h2>
+            <p className="text-lg text-muted-foreground leading-relaxed">{tipologia.description}</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Floor Plan */}
+            <section className="py-12 bg-muted/30">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-display font-bold text-foreground mb-8 text-center">Plano Arquitectónico</h2>
+            <div className="bg-background rounded-lg shadow-elegant overflow-hidden">
+              <img 
+                src={planoTipologiaE}
+                alt={`Plano arquitectónico - ${tipologia.name}`}
+                className="w-full h-auto object-contain"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features & Finishes */}
+      <section className="py-12">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="grid md:grid-cols-2 gap-12 max-w-5xl mx-auto">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-6">Características Exclusivas</h2>
+              <ul className="space-y-3">
+                {tipologia.features.map((feature, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    <span className="text-muted-foreground">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-6">Acabados de Ultra Lujo</h2>
+              <ul className="space-y-3">
+                {tipologia.finishes.map((finish, index) => (
+                  <li key={index} className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+                    <span className="text-muted-foreground">{finish}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="py-16 bg-gradient-to-r from-primary via-primary/95 to-primary/90">
+        <div className="container mx-auto px-4 lg:px-8 text-center">
+          <h3 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
+            ¿Te interesa esta tipología?
+          </h3>
+          <p className="text-lg text-white/90 max-w-2xl mx-auto mb-8">
+            Contáctanos para agendar una visita y conocer más detalles
+          </p>
+          <Link to="/agendar-visita">
+            <button className="px-8 py-4 bg-accent text-primary font-bold rounded-lg hover:bg-accent/90 transition-all duration-300 text-lg shadow-lg hover:shadow-2xl transform hover:-translate-y-1">
+              Agendar Visita
+            </button>
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default TipologiaE;
