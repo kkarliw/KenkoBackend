@@ -67,8 +67,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     @Query("SELECT a FROM Appointment a WHERE " +
             "a.doctorId = :doctorId AND " +
             "a.orgId = :orgId AND " +
-            "a.status NOT IN (com.kenko.demo.appointment.entity.Appointment.AppointmentStatus.CANCELLED, " +
-            "com.kenko.demo.appointment.entity.Appointment.AppointmentStatus.NO_SHOW) AND " +
+            "a.status NOT IN (AppointmentStatus.CANCELLED, AppointmentStatus.NO_SHOW) AND " +
             "a.appointmentDate BETWEEN :start AND :end")
     List<Appointment> findAppointmentsInTimeRange(
             @Param("doctorId") Long doctorId,

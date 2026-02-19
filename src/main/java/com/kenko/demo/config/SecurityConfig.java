@@ -4,9 +4,6 @@ import com.kenko.demo.auth.filter.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -19,6 +16,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -26,7 +24,6 @@ import java.util.Arrays;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
-    private final SecurityHeadersFilter securityHeadersFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -34,101 +31,17 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .anonymous(anonymous -> anonymous.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-
-                        // =====================
-                        // PÚBLICOS - PRIMERO
-                        // =====================
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/api/v1/auth/login").permitAll()
-                        .requestMatchers("/api/v1/auth/register-organization").permitAll()
-                        .requestMatchers("/api/v1/health").permitAll()
-
-                        // =====================
-                        // AUTH
-                        // =====================
-                        .requestMatchers(HttpMethod.GET, "/api/v1/auth/me")
-                        .hasAnyRole("ADMIN", "DOCTOR", "RECEPTIONIST", "PATIENT", "CAREGIVER")
-
-                        // =====================
-                        // ORGANIZATION
-                        // =====================
-                        .requestMatchers(HttpMethod.GET, "/api/v1/organization/me").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/organization/me").hasRole("ADMIN")
-
-                        // =====================
-                        // USERS
-                        // =====================
-                        .requestMatchers(HttpMethod.GET, "/api/v1/users").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/users").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/users/**").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/users/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/users/**").hasRole("ADMIN")
-
-                        // =====================
-                        // PATIENTS
-                        // =====================
-                        .requestMatchers(HttpMethod.GET, "/api/v1/patients/**")
-                        .hasAnyRole("ADMIN", "DOCTOR", "RECEPTIONIST", "PATIENT", "CAREGIVER")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/patients")
-                        .hasAnyRole("ADMIN", "RECEPTIONIST")
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/patients/**")
-                        .hasAnyRole("ADMIN", "RECEPTIONIST")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/patients/**")
-                        .hasRole("ADMIN")
-
-                        // =====================
-                        // APPOINTMENTS
-                        // =====================
-                        .requestMatchers(HttpMethod.GET, "/api/v1/appointments")
-                        .hasAnyRole("ADMIN", "DOCTOR", "RECEPTIONIST", "PATIENT", "CAREGIVER")
-                        .requestMatchers(HttpMethod.GET, "/api/v1/appointments/**")
-                        .hasAnyRole("ADMIN", "DOCTOR", "RECEPTIONIST", "PATIENT", "CAREGIVER")
-                        .requestMatchers(HttpMethod.POST, "/api/v1/appointments")
-                        .hasAnyRole("RECEPTIONIST", "DOCTOR", "ADMIN", "CAREGIVER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/appointments/**")
-                        .hasAnyRole("RECEPTIONIST", "DOCTOR", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/appointments/**")
-                        .hasRole("ADMIN")
-
-                        // =====================
-                        // TASKS
-                        // =====================
-                        .requestMatchers(HttpMethod.GET, "/api/v1/tasks").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/tasks")
-                        .hasAnyRole("ADMIN", "DOCTOR")
-                        .requestMatchers(HttpMethod.PATCH, "/api/v1/tasks/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/tasks/**").hasRole("ADMIN")
-
-                        // =====================
-                        // NOTIFICATIONS
-                        // =====================
-                        .requestMatchers(HttpMethod.GET, "/api/v1/notifications/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/notifications").authenticated()
-                        .requestMatchers(HttpMethod.PUT, "/api/v1/notifications/**").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/api/v1/notifications/**").authenticated()
-
-                        // =====================
-                        // DASHBOARD
-                        // =====================
-                        .requestMatchers(HttpMethod.GET, "/api/v1/dashboard/**").authenticated()
-
-                        // =====================
-                        // ADMIN
-                        // =====================
-                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-
-                        // =====================
-                        // TODO LO DEMÁS REQUIERE AUTH
-                        // =====================
+                        // PÚBLICOS
+                        .requestMatchers("/auth/login").permitAll()
+                        .requestMatchers("/auth/register-organization").permitAll()
+                        .requestMatchers("/health").permitAll()
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(securityHeadersFilter, JwtAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -139,38 +52,18 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)
-            throws Exception {
-        return config.getAuthenticationManager();
-    }
-
-    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:8080",
-                "http://localhost:8081",
-                "http://localhost:8082",
-                "http://localhost:5173",
-                "http://127.0.0.1:3000",
-                "http://127.0.0.1:3001",
-                "http://127.0.0.1:8080",
-                "http://127.0.0.1:8081",
-                "http://127.0.0.1:8082"
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000", "http://localhost:5173", "http://localhost:8080",
+                "http://127.0.0.1:3000", "http://127.0.0.1:5173", "http://127.0.0.1:8080"
         ));
-        configuration.setAllowedMethods(Arrays.asList(
-                "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
-        ));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
 
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
 }
