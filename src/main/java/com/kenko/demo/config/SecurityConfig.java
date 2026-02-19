@@ -34,17 +34,19 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .anonymous(anonymous -> anonymous.disable())
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
 
                         // =====================
-                        // PÚBLICOS - VAN PRIMERO
+                        // PÚBLICOS - PRIMERO
                         // =====================
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/register-organization").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .requestMatchers("/api/v1/auth/login").permitAll()
+                        .requestMatchers("/api/v1/auth/register-organization").permitAll()
+                        .requestMatchers("/api/v1/health").permitAll()
 
                         // =====================
                         // AUTH
@@ -150,13 +152,13 @@ public class SecurityConfig {
                 "http://localhost:3001",
                 "http://localhost:8080",
                 "http://localhost:8081",
-                "http://localhost:8082",      // ✅ IMPORTANTE - Frontend aquí
+                "http://localhost:8082",
                 "http://localhost:5173",
                 "http://127.0.0.1:3000",
                 "http://127.0.0.1:3001",
                 "http://127.0.0.1:8080",
                 "http://127.0.0.1:8081",
-                "http://127.0.0.1:8082"       // ✅ AGREGAR ESTO
+                "http://127.0.0.1:8082"
         ));
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"

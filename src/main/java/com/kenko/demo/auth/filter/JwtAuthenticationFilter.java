@@ -22,25 +22,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    private static final String[] PUBLIC_URLS = {
-            "/api/v1/auth/login",
-            "/api/v1/auth/register-organization",
-            "/api/v1/health"
-    };
-
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // ✅ SALTARSE RUTAS PÚBLICAS
-        if (isPublicUrl(request.getRequestURI())) {
+        // ✅ PERMITIR RUTAS PÚBLICAS CON /api/v1 PREFIX
+        String uri = request.getRequestURI();
+        log.debug("Verificando URI: {}", uri);
+
+        if (isPublicUrl(uri)) {
+            log.debug("URI es pública, saltando autenticación JWT");
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
-            // Obtener token del header
             String token = getTokenFromRequest(request);
 
             if (token != null && jwtTokenProvider.validateToken(token)) {
@@ -48,7 +45,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 String role = jwtTokenProvider.getRoleFromToken(token);
                 Long orgId = jwtTokenProvider.getOrgIdFromToken(token);
 
-                // Crear authentication
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
                                 userId,
@@ -57,16 +53,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         );
 
                 SecurityContextHolder.getContext().setAuthentication(auth);
-
-                // Guardar orgId en request attributes
                 request.setAttribute("orgId", orgId);
                 request.setAttribute("userId", userId);
                 request.setAttribute("role", role);
 
-                log.debug("Usuario autenticado: {} con orgId: {}", userId, orgId);
+                log.debug("✅ Usuario autenticado: {} con orgId: {}", userId, orgId);
+            } else {
+                log.warn("⚠️ Token no válido o ausente para URI: {}", uri);
             }
         } catch (Exception e) {
-            log.error("Error al procesar JWT: {}", e.getMessage());
+            log.error("❌ Error al procesar JWT: {}", e.getMessage());
             SecurityContextHolder.clearContext();
         }
 
@@ -74,13 +70,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private boolean isPublicUrl(String uri) {
+        // ✅ CORRECTO - Incluir /api/v1 en comparaciones
+        boolean isPublic = uri.equals("/api/v1/auth/login") ||
+                uri.equals("/api/v1/auth/register-organization") ||
+                uri.equals("/api/v1/health") ||
+                uri.startsWith("/api/v1/auth/login") ||
+                uri.startsWith("/api/v1/auth/register-organization") ||
+                uri.startsWith("/api/v1/health");
 
-        return uri.equals("/auth/login") ||
-                uri.equals("/auth/register-organization") ||
-                uri.equals("/health") ||
-                uri.startsWith("/auth/login") ||
-                uri.startsWith("/auth/register-organization") ||
-                uri.startsWith("/health");
+        if (isPublic) {
+            log.debug("✅ URI pública identificada: {}", uri);
+        }
+        return isPublic;
     }
 
     private String getTokenFromRequest(HttpServletRequest request) {
