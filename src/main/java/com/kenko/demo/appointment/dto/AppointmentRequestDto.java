@@ -3,7 +3,8 @@ package com.kenko.demo.appointment.dto;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 
 @Data
 @NoArgsConstructor
@@ -17,13 +18,15 @@ public class AppointmentRequestDto {
     private Long doctorId;
 
     @NotNull(message = "Fecha de cita es requerida")
-    private LocalDateTime appointmentDate;
+    private LocalDate appointmentDate;
 
-    private Integer durationMinutes;
+    @NotNull(message = "Hora de cita es requerida")
+    private LocalTime appointmentTime;
 
-    @NotBlank(message = "Motivo de la cita es requerido")
-    private String reason;
+    private Integer durationMinutes = 30;
+
+    @NotBlank(message = "Tipo de cita es requerido")
+    private String type;
 
     private String notes;
-    private String location;
 }

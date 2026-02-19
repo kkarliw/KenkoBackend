@@ -1,6 +1,5 @@
 package com.kenko.demo.dashboard.controller;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.kenko.demo.dashboard.dto.AdminDashboardDto;
 import com.kenko.demo.dashboard.dto.DoctorDashboardDto;
 import com.kenko.demo.dashboard.dto.ReceptionistDashboardDto;
+import com.kenko.demo.dashboard.dto.GenericDashboardDto;
 import com.kenko.demo.dashboard.service.DashboardService;
 import com.kenko.demo.common.dto.ApiResponse;
 
@@ -17,6 +17,23 @@ import com.kenko.demo.common.dto.ApiResponse;
 public class DashboardController {
 
     private final DashboardService dashboardService;
+
+    /**
+     * Dashboard genérico - Compatible con frontend (cualquier rol)
+     */
+    @GetMapping("/{userId}")
+    public ResponseEntity<ApiResponse<GenericDashboardDto>> getGenericDashboard(
+            @PathVariable Long userId,
+            HttpServletRequest httpRequest
+    ) {
+        Long orgId = (Long) httpRequest.getAttribute("orgId");
+
+        GenericDashboardDto response = dashboardService.getGenericDashboard(userId, orgId);
+
+        return ResponseEntity.ok(
+                ApiResponse.ok(response, "Dashboard obtenido")
+        );
+    }
 
     /**
      * Dashboard para ADMIN

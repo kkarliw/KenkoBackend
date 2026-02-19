@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.kenko.demo.dashboard.dto.AdminDashboardDto;
 import com.kenko.demo.dashboard.dto.DoctorDashboardDto;
 import com.kenko.demo.dashboard.dto.ReceptionistDashboardDto;
+import com.kenko.demo.dashboard.dto.GenericDashboardDto;
 import com.kenko.demo.appointment.dto.AppointmentResponseDto;
 import com.kenko.demo.appointment.entity.Appointment;
 import com.kenko.demo.appointment.entity.Appointment.AppointmentStatus;
@@ -31,6 +32,49 @@ public class DashboardService {
     private final PatientRepository patientRepository;
     private final UserRepository userRepository;
     private final AppointmentService appointmentService;
+
+    /**
+     * Dashboard genérico - compatible con frontend
+     */
+    public GenericDashboardDto getGenericDashboard(Long userId, Long orgId) {
+        LocalDate today = LocalDate.now();
+        LocalDateTime startOfDay = today.atStartOfDay();
+        LocalDateTime endOfDay = today.plusDays(1).atStartOfDay();
+
+        // Total de pacientes
+        long totalPatients = patientRepository.findByOrgId(orgId, null).getTotalElements();
+
+        // Citas pendientes
+        long totalPendingAppointments = appointmentRepository
+                .findByOrgIdAndStatus(orgId, AppointmentStatus.PENDING, null)
+                .getTotalElements();
+
+        // Citas de hoy
+        List<Appointment> todayAppointments = appointmentRepository
+                .findAppointmentsByDateRange(orgId, startOfDay, endOfDay);
+
+        List<AppointmentResponseDto> appointmentsTodayDto = todayAppointments.stream()
+                .map(appointmentService::convertToDto)
+                .collect(Collectors.toList());
+
+        // Próximas 5 citas
+        List<Appointment> allAppointments = appointmentRepository
+                .findAppointmentsByDateRange(orgId, LocalDateTime.now(), LocalDateTime.now().plusDays(30));
+
+        List<AppointmentResponseDto> upcomingAppointmentsDto = allAppointments.stream()
+                .filter(a -> a.getAppointmentDate().isAfter(LocalDateTime.now()))
+                .sorted((a, b) -> a.getAppointmentDate().compareTo(b.getAppointmentDate()))
+                .limit(5)
+                .map(appointmentService::convertToDto)
+                .collect(Collectors.toList());
+
+        return GenericDashboardDto.builder()
+                .totalPatients(totalPatients)
+                .totalPendingAppointments(totalPendingAppointments)
+                .appointmentsToday(appointmentsTodayDto)
+                .upcomingAppointments(upcomingAppointmentsDto)
+                .build();
+    }
 
     /**
      * Dashboard para ADMIN

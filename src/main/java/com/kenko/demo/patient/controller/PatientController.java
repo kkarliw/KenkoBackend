@@ -16,7 +16,7 @@ import com.kenko.demo.common.dto.ApiResponse;
 import com.kenko.demo.common.dto.PaginationDto;
 
 @RestController
-@RequestMapping("/api/v1/patients")
+@RequestMapping("/api/v1/pacientes")
 @RequiredArgsConstructor
 public class PatientController {
 
@@ -27,7 +27,7 @@ public class PatientController {
      */
     @PostMapping
     public ResponseEntity<ApiResponse<PatientResponseDto>> createPatient(
-            @RequestBody CreatePatientRequestDto request,
+            @Valid @RequestBody CreatePatientRequestDto request,
             HttpServletRequest httpRequest
     ) {
         Long orgId = (Long) httpRequest.getAttribute("orgId");
@@ -56,7 +56,7 @@ public class PatientController {
     }
 
     /**
-     * Buscar pacientes
+     * Buscar/listar pacientes
      */
     @GetMapping
     public ResponseEntity<ApiResponse<PaginationDto<PatientResponseDto>>> searchPatients(
@@ -82,6 +82,41 @@ public class PatientController {
 
         return ResponseEntity.ok(
                 ApiResponse.ok(response, "Búsqueda de pacientes completada")
+        );
+    }
+
+    /**
+     * Actualizar paciente
+     */
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<PatientResponseDto>> updatePatient(
+            @PathVariable Long id,
+            @Valid @RequestBody CreatePatientRequestDto request,
+            HttpServletRequest httpRequest
+    ) {
+        Long orgId = (Long) httpRequest.getAttribute("orgId");
+
+        PatientResponseDto response = patientService.updatePatient(id, request, orgId);
+
+        return ResponseEntity.ok(
+                ApiResponse.ok(response, "Paciente actualizado exitosamente")
+        );
+    }
+
+    /**
+     * Eliminar paciente
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deletePatient(
+            @PathVariable Long id,
+            HttpServletRequest httpRequest
+    ) {
+        Long orgId = (Long) httpRequest.getAttribute("orgId");
+
+        patientService.deletePatient(id, orgId);
+
+        return ResponseEntity.ok(
+                ApiResponse.ok("Paciente eliminado exitosamente", "Paciente removido")
         );
     }
 }

@@ -3,6 +3,7 @@ package com.kenko.demo.appointment.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,18 +38,64 @@ public class AppointmentService {
     private final PatientRepository patientRepository;
 
     /**
+     * Obtener todas las citas de la organización
+     */
+    public Page<AppointmentResponseDto> getAppointmentsByOrg(
+            Long orgId,
+            String status,
+            Pageable pageable
+    ) {
+        Page<Appointment> appointments;
+
+        try {
+            if (status != null && !status.trim().isEmpty()) {
+                AppointmentStatus appointmentStatus = AppointmentStatus.valueOf(status.toUpperCase());
+                appointments = appointmentRepository.findByOrgIdAndStatus(orgId, appointmentStatus, pageable);
+            } else {
+                // Obtener todas sin filtro
+                List<Appointment> allAppointments = appointmentRepository.findAll();
+                List<Appointment> orgAppointments = allAppointments.stream()
+                        .filter(a -> a.getOrgId().equals(orgId))
+                        .collect(Collectors.toList());
+
+                int start = (int) pageable.getOffset();
+                int end = Math.min((start + pageable.getPageSize()), orgAppointments.size());
+                List<Appointment> pageContent = orgAppointments.subList(start, end);
+
+                appointments = new PageImpl<>(pageContent, pageable, orgAppointments.size());
+            }
+        } catch (IllegalArgumentException e) {
+            throw new InvalidAppointmentStatusException("Estado inválido: " + status);
+        }
+
+        return appointments.map(this::convertToDto);
+    }
+
+    /**
+     * Obtener cita por ID
+     */
+    public AppointmentResponseDto getAppointmentById(Long appointmentId, Long orgId) {
+        Appointment appointment = appointmentRepository.findByIdAndOrgId(appointmentId, orgId)
+                .orElseThrow(() -> new AppointmentNotFoundException("Cita no encontrada"));
+        return convertToDto(appointment);
+    }
+
+    /**
      * Crear una nueva cita
      */
     public AppointmentResponseDto createAppointment(
             AppointmentRequestDto request,
             Long orgId
     ) {
-        // 1. Validar que la fecha sea en el futuro
-        if (request.getAppointmentDate().isBefore(LocalDateTime.now())) {
+        LocalDateTime appointmentDateTime = LocalDateTime.of(
+                request.getAppointmentDate(),
+                request.getAppointmentTime()
+        );
+
+        if (appointmentDateTime.isBefore(LocalDateTime.now())) {
             throw new InvalidAppointmentStatusException("La cita no puede ser en el pasado");
         }
 
-        // 2. Validar paciente existe y pertenece a orgId
         Patient patient = patientRepository.findById(request.getPatientId())
                 .orElseThrow(() -> new ApplicationException("Paciente no encontrado", HttpStatus.NOT_FOUND));
 
@@ -56,42 +103,40 @@ public class AppointmentService {
             throw new ApplicationException("Paciente no pertenece a tu organización", HttpStatus.FORBIDDEN);
         }
 
-        // 3. Validar conflicto horario (mismo doctor, overlapping)
+        LocalDateTime startTime = appointmentDateTime.minusMinutes(5);
+        LocalDateTime endTime = appointmentDateTime.plusMinutes((request.getDurationMinutes() != null ? request.getDurationMinutes() : 30) + 5);
+
         List<Appointment> conflicting = appointmentRepository.findAppointmentsInTimeRange(
                 request.getDoctorId(),
                 orgId,
-                request.getAppointmentDate().minusMinutes(5),
-                request.getAppointmentDate().plusMinutes(35)
+                startTime,
+                endTime
         );
 
         if (!conflicting.isEmpty()) {
-            throw new InvalidAppointmentStatusException(
-                    "El doctor no tiene disponibilidad en ese horario"
-            );
+            throw new InvalidAppointmentStatusException("El doctor no tiene disponibilidad en ese horario");
         }
 
-        // 4. Crear cita
         Appointment appointment = Appointment.builder()
                 .patientId(request.getPatientId())
                 .doctorId(request.getDoctorId())
                 .orgId(orgId)
-                .appointmentDate(request.getAppointmentDate())
+                .appointmentDate(appointmentDateTime)
                 .durationMinutes(request.getDurationMinutes() != null ? request.getDurationMinutes() : 30)
-                .reason(request.getReason())
+                .reason(request.getType())
                 .notes(request.getNotes())
-                .location(request.getLocation() != null ? request.getLocation() : "Consultorio")
+                .location("Consultorio")
                 .status(AppointmentStatus.PENDING)
                 .build();
 
         appointment = appointmentRepository.save(appointment);
-        log.info("Cita creada: ID={}, Paciente={}, Doctor={}",
-                appointment.getId(), request.getPatientId(), request.getDoctorId());
+        log.info("Cita creada: ID={}", appointment.getId());
 
         return convertToDto(appointment);
     }
 
     /**
-     * Cambiar el estado de una cita
+     * Cambiar estado de cita
      */
     public AppointmentResponseDto updateAppointmentStatus(
             Long appointmentId,
@@ -101,16 +146,13 @@ public class AppointmentService {
         Appointment appointment = appointmentRepository.findByIdAndOrgId(appointmentId, orgId)
                 .orElseThrow(() -> new AppointmentNotFoundException("Cita no encontrada"));
 
-        // Validar transiciones de estado
         if (!isValidTransition(appointment.getStatus(), request.getStatus())) {
             throw new InvalidAppointmentStatusException(
                     String.format("No se puede cambiar de %s a %s",
-                            appointment.getStatus(),
-                            request.getStatus())
+                            appointment.getStatus(), request.getStatus())
             );
         }
 
-        // Si es cancelación, validar motivo
         if (request.getStatus() == AppointmentStatus.CANCELLED) {
             if (request.getCancelReason() == null || request.getCancelReason().isBlank()) {
                 throw new InvalidAppointmentStatusException("Motivo de cancelación requerido");
@@ -120,44 +162,33 @@ public class AppointmentService {
         }
 
         appointment.setStatus(request.getStatus());
-
-        log.info("Estado de cita actualizado: ID={}, Estado={}", appointmentId, request.getStatus());
-
         appointment = appointmentRepository.save(appointment);
+
+        log.info("Estado de cita actualizado: ID={}", appointmentId);
         return convertToDto(appointment);
     }
 
     /**
-     * Obtener agenda del doctor para hoy
+     * Eliminar cita
+     */
+    public void deleteAppointment(Long appointmentId, Long orgId) {
+        Appointment appointment = appointmentRepository.findByIdAndOrgId(appointmentId, orgId)
+                .orElseThrow(() -> new AppointmentNotFoundException("Cita no encontrada"));
+        appointmentRepository.delete(appointment);
+        log.info("Cita eliminada: ID={}", appointmentId);
+    }
+
+    /**
+     * Agenda del doctor para hoy
      */
     public List<AppointmentResponseDto> getDoctorAgendaToday(Long doctorId, Long orgId) {
-        LocalDate today = LocalDate.now();
         List<Appointment> appointments = appointmentRepository
-                .findDoctorAppointmentsByDate(doctorId, orgId, today);
-
-        return appointments.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
+                .findDoctorAppointmentsByDate(doctorId, orgId, LocalDate.now());
+        return appointments.stream().map(this::convertToDto).collect(Collectors.toList());
     }
 
     /**
-     * Obtener agenda del doctor para una fecha específica
-     */
-    public List<AppointmentResponseDto> getDoctorAgendaByDate(
-            Long doctorId,
-            LocalDate date,
-            Long orgId
-    ) {
-        List<Appointment> appointments = appointmentRepository
-                .findDoctorAppointmentsByDate(doctorId, orgId, date);
-
-        return appointments.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Obtener mis citas (para el paciente)
+     * Citas del paciente
      */
     public Page<AppointmentResponseDto> getPatientAppointments(
             Long patientId,
@@ -170,40 +201,21 @@ public class AppointmentService {
     }
 
     /**
-     * Obtener citas por rango de fechas
-     */
-    public List<AppointmentResponseDto> getAppointmentsByDateRange(
-            Long orgId,
-            LocalDate startDate,
-            LocalDate endDate
-    ) {
-        LocalDateTime startDateTime = startDate.atStartOfDay();
-        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
-
-        List<Appointment> appointments = appointmentRepository
-                .findAppointmentsByDateRange(orgId, startDateTime, endDateTime);
-
-        return appointments.stream()
-                .map(this::convertToDto)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Validar transiciones de estado válidas
+     * Validar transición de estados
      */
     private boolean isValidTransition(AppointmentStatus current, AppointmentStatus next) {
         return switch(current) {
             case PENDING -> next == AppointmentStatus.CONFIRMED || next == AppointmentStatus.CANCELLED;
             case CONFIRMED -> next == AppointmentStatus.CHECKED_IN || next == AppointmentStatus.CANCELLED || next == AppointmentStatus.NO_SHOW;
-            case CHECKED_IN -> next == AppointmentStatus.COMPLETED; // ✅ AHORA EXISTE COMPLETED
-            case COMPLETED -> false; // No se puede cambiar de COMPLETED
-            case CANCELLED -> false; // No se puede cambiar de CANCELLED
-            case NO_SHOW -> false;   // No se puede cambiar de NO_SHOW
+            case CHECKED_IN -> next == AppointmentStatus.COMPLETED;
+            case COMPLETED -> false;
+            case CANCELLED -> false;
+            case NO_SHOW -> false;
         };
     }
 
     /**
-     * Convertir entidad a DTO con nombres
+     * Convertir entidad a DTO
      */
     public AppointmentResponseDto convertToDto(Appointment appointment) {
         String patientName = "Paciente";
@@ -213,7 +225,6 @@ public class AppointmentService {
             patientName = userRepository.findById(appointment.getPatientId())
                     .map(u -> u.getFirstName() + " " + u.getLastName())
                     .orElse("Paciente");
-
             doctorName = userRepository.findById(appointment.getDoctorId())
                     .map(u -> u.getFirstName() + " " + u.getLastName())
                     .orElse("Doctor");
@@ -230,7 +241,7 @@ public class AppointmentService {
                 .appointmentDate(appointment.getAppointmentDate())
                 .durationMinutes(appointment.getDurationMinutes())
                 .status(appointment.getStatus())
-                .reason(appointment.getReason())
+                .type(appointment.getReason())
                 .notes(appointment.getNotes())
                 .location(appointment.getLocation())
                 .createdAt(appointment.getCreatedAt())

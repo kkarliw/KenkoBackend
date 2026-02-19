@@ -17,7 +17,7 @@ public class AppointmentResponseDto {
     private LocalDateTime appointmentDate;
     private Integer durationMinutes;
     private AppointmentStatus status;
-    private String reason;
+    private String type;  // ← Cambio: "reason" → "type" para compatibilidad con frontend
     private String notes;
     private String location;
     private LocalDateTime createdAt;

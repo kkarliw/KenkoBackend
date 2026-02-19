@@ -1,6 +1,5 @@
 package com.kenko.demo.appointment.repository;
 
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,7 +18,14 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
 
     Optional<Appointment> findByIdAndOrgId(Long id, Long orgId);
 
-    // ✅ Buscar citas por doctor y fecha (ESTE FALTABA)
+    /**
+     * Obtener citas de una organización por estado
+     */
+    Page<Appointment> findByOrgIdAndStatus(Long orgId, AppointmentStatus status, Pageable pageable);
+
+    /**
+     * Buscar citas por doctor y fecha
+     */
     @Query("SELECT a FROM Appointment a WHERE a.doctorId = :doctorId " +
             "AND a.orgId = :orgId " +
             "AND CAST(a.appointmentDate AS DATE) = :date " +
@@ -30,7 +36,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("date") LocalDate date
     );
 
-    // Buscar citas por rango de fechas
+    /**
+     * Buscar citas por rango de fechas
+     */
     @Query("SELECT a FROM Appointment a WHERE a.orgId = :orgId " +
             "AND a.appointmentDate >= :startDate " +
             "AND a.appointmentDate < :endDate " +
@@ -41,7 +49,9 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             @Param("endDate") LocalDateTime endDate
     );
 
-    // Buscar citas del paciente
+    /**
+     * Buscar citas del paciente
+     */
     @Query("SELECT a FROM Appointment a WHERE a.patientId = :patientId " +
             "AND a.orgId = :orgId " +
             "ORDER BY a.appointmentDate DESC")
@@ -51,26 +61,19 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
             Pageable pageable
     );
 
-    // ✅ Buscar citas en rango de tiempo (para validar conflictos)
+    /**
+     * Buscar citas en rango de tiempo (para validar conflictos)
+     */
     @Query("SELECT a FROM Appointment a WHERE " +
             "a.doctorId = :doctorId AND " +
             "a.orgId = :orgId AND " +
-            "a.status NOT IN ('CANCELLED', 'NO_SHOW') AND " +
+            "a.status NOT IN (com.kenko.demo.appointment.entity.Appointment.AppointmentStatus.CANCELLED, " +
+            "com.kenko.demo.appointment.entity.Appointment.AppointmentStatus.NO_SHOW) AND " +
             "a.appointmentDate BETWEEN :start AND :end")
     List<Appointment> findAppointmentsInTimeRange(
             @Param("doctorId") Long doctorId,
             @Param("orgId") Long orgId,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end
-    );
-
-    // Buscar citas por estado
-    @Query("SELECT a FROM Appointment a WHERE a.orgId = :orgId " +
-            "AND a.status = :status " +
-            "ORDER BY a.appointmentDate ASC")
-    Page<Appointment> findByOrgIdAndStatus(
-            @Param("orgId") Long orgId,
-            @Param("status") AppointmentStatus status,
-            Pageable pageable
     );
 }

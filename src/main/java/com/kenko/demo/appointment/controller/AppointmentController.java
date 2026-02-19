@@ -16,7 +16,6 @@ import com.kenko.demo.appointment.service.AppointmentService;
 import com.kenko.demo.common.dto.ApiResponse;
 import com.kenko.demo.common.dto.PaginationDto;
 
-import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -25,6 +24,52 @@ import java.util.List;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+
+    /**
+     * Listar todas las citas de la organización
+     */
+    @GetMapping
+    public ResponseEntity<ApiResponse<PaginationDto<AppointmentResponseDto>>> getAppointments(
+            @RequestParam(required = false) String status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            HttpServletRequest httpRequest
+    ) {
+        Long orgId = (Long) httpRequest.getAttribute("orgId");
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<AppointmentResponseDto> appointments = appointmentService.getAppointmentsByOrg(orgId, status, pageable);
+
+        PaginationDto<AppointmentResponseDto> response = PaginationDto.<AppointmentResponseDto>builder()
+                .content(appointments.getContent())
+                .pageNumber(appointments.getNumber())
+                .pageSize(appointments.getSize())
+                .totalElements(appointments.getTotalElements())
+                .totalPages(appointments.getTotalPages())
+                .last(appointments.isLast())
+                .build();
+
+        return ResponseEntity.ok(
+                ApiResponse.ok(response, "Citas obtenidas")
+        );
+    }
+
+    /**
+     * Obtener cita por ID
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<AppointmentResponseDto>> getAppointment(
+            @PathVariable Long id,
+            HttpServletRequest httpRequest
+    ) {
+        Long orgId = (Long) httpRequest.getAttribute("orgId");
+
+        AppointmentResponseDto appointment = appointmentService.getAppointmentById(id, orgId);
+
+        return ResponseEntity.ok(
+                ApiResponse.ok(appointment, "Cita obtenida")
+        );
+    }
 
     /**
      * Crear cita
@@ -43,9 +88,9 @@ public class AppointmentController {
     }
 
     /**
-     * Cambiar estado de cita
+     * Cambiar estado de cita (compatible con frontend)
      */
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/{id}")
     public ResponseEntity<ApiResponse<AppointmentResponseDto>> updateAppointmentStatus(
             @PathVariable Long id,
             @Valid @RequestBody UpdateAppointmentStatusDto request,
@@ -57,6 +102,23 @@ public class AppointmentController {
 
         return ResponseEntity.ok(
                 ApiResponse.ok(response, "Estado de cita actualizado")
+        );
+    }
+
+    /**
+     * Eliminar cita
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<String>> deleteAppointment(
+            @PathVariable Long id,
+            HttpServletRequest httpRequest
+    ) {
+        Long orgId = (Long) httpRequest.getAttribute("orgId");
+
+        appointmentService.deleteAppointment(id, orgId);
+
+        return ResponseEntity.ok(
+                ApiResponse.ok("Cita eliminada exitosamente", "Cita removida")
         );
     }
 
@@ -75,26 +137,6 @@ public class AppointmentController {
 
         return ResponseEntity.ok(
                 ApiResponse.ok(appointments, "Agenda del día obtenida")
-        );
-    }
-
-    /**
-     * Agenda del doctor por fecha
-     */
-    @GetMapping("/doctor/agenda")
-    public ResponseEntity<ApiResponse<List<AppointmentResponseDto>>> getDoctorAgenda(
-            @RequestParam String date,
-            HttpServletRequest httpRequest
-    ) {
-        Long doctorId = (Long) httpRequest.getAttribute("userId");
-        Long orgId = (Long) httpRequest.getAttribute("orgId");
-
-        LocalDate searchDate = LocalDate.parse(date);
-        List<AppointmentResponseDto> appointments = appointmentService
-                .getDoctorAgendaByDate(doctorId, searchDate, orgId);
-
-        return ResponseEntity.ok(
-                ApiResponse.ok(appointments, "Agenda obtenida")
         );
     }
 
