@@ -55,8 +55,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
+<<<<<<< HEAD
                 "http://localhost:3000", "http://localhost:5173", "http://localhost:8080", "http://localhost:8082",
                 "http://127.0.0.1:3000", "http://127.0.0.1:5173", "http://127.0.0.1:8080", "http://127.0.0.1:8082"
+=======
+                "http://localhost:3000", "http://localhost:5173", "http://localhost:8080",
+                "http://127.0.0.1:3000", "http://127.0.0.1:5173", "http://127.0.0.1:8080"
+>>>>>>> ee6b39ca9dfa1c9d8de53cf814e53aff3d30d416
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));

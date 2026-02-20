@@ -10,7 +10,11 @@ import com.kenko.demo.organization.service.OrganizationService;
 import com.kenko.demo.common.dto.ApiResponse;
 
 @RestController
+<<<<<<< HEAD
 @RequestMapping("/organization")
+=======
+@RequestMapping("/api/v1/organization")
+>>>>>>> ee6b39ca9dfa1c9d8de53cf814e53aff3d30d416
 @RequiredArgsConstructor
 public class OrganizationController {
 

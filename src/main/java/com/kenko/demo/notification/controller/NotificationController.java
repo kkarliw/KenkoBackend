@@ -15,7 +15,11 @@ import com.kenko.demo.common.dto.PaginationDto;
 import java.util.List;
 
 @RestController
+<<<<<<< HEAD
 @RequestMapping("/notifications")
+=======
+@RequestMapping("/api/v1/notifications")
+>>>>>>> ee6b39ca9dfa1c9d8de53cf814e53aff3d30d416
 @RequiredArgsConstructor
 public class NotificationController {
 

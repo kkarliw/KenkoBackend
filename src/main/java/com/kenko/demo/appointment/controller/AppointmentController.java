@@ -19,7 +19,11 @@ import com.kenko.demo.common.dto.PaginationDto;
 import java.util.List;
 
 @RestController
+<<<<<<< HEAD
 @RequestMapping("/appointments")
+=======
+@RequestMapping("/api/v1/appointments")
+>>>>>>> ee6b39ca9dfa1c9d8de53cf814e53aff3d30d416
 @RequiredArgsConstructor
 public class AppointmentController {
 

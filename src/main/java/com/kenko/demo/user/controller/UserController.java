@@ -15,7 +15,11 @@ import com.kenko.demo.common.dto.ApiResponse;
 import com.kenko.demo.common.dto.PaginationDto;
 
 @RestController
+<<<<<<< HEAD
 @RequestMapping("/users")
+=======
+@RequestMapping("/api/v1/users")
+>>>>>>> ee6b39ca9dfa1c9d8de53cf814e53aff3d30d416
 @RequiredArgsConstructor
 public class UserController {
 

@@ -12,7 +12,11 @@ import com.kenko.demo.dashboard.service.DashboardService;
 import com.kenko.demo.common.dto.ApiResponse;
 
 @RestController
+<<<<<<< HEAD
 @RequestMapping("/dashboard")
+=======
+@RequestMapping("/api/v1/dashboard")
+>>>>>>> ee6b39ca9dfa1c9d8de53cf814e53aff3d30d416
 @RequiredArgsConstructor
 public class DashboardController {
 

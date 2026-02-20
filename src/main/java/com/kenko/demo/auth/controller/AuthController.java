@@ -19,7 +19,11 @@ import com.kenko.demo.user.repository.UserRepository;
 import com.kenko.demo.common.exception.ApplicationException;
 
 @RestController
+<<<<<<< HEAD
 @RequestMapping("/auth")
+=======
+@RequestMapping("/api/v1/auth")
+>>>>>>> ee6b39ca9dfa1c9d8de53cf814e53aff3d30d416
 @RequiredArgsConstructor
 public class AuthController {
 
