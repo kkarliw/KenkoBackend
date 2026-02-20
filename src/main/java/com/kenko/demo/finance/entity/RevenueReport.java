@@ -1,0 +1,4 @@
+package com.kenko.demo.finance.entity;
+
+public class RevenueReport {
+}
